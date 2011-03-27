@@ -4,7 +4,12 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/ruben.common"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/ruben.common.processing"/>
-	<classpathentry kind="lib" path="/home/ruben/Programs/libraries/opencv/mylib/OpenCV.jar"/>
+	<classpathentry kind="lib" path="/home/ruben/Programs/libraries/opencv/mylib/OpenCV.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/home/ruben/Programs/libraries/opencv/mylib"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="/home/ruben/Programs/processing-1.2.1/lib/core.jar"/>
+	<classpathentry kind="lib" path="/home/ruben/Programs/processing-1.2.1/libraries/flob/library/flob.jar" sourcepath="/home/ruben/Programs/processing-1.2.1/libraries/flob/src"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
