@@ -1,6 +1,8 @@
 package ruben.traces.engine;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+
 import processing.core.PConstants;
 import processing.core.PImage;
 import ruben.common.drawing.Line;
@@ -30,7 +32,10 @@ public class MotionDetection extends BaseAppletDrawer implements
 	ArrayList<trackedBlob> _tBlobs;
 	private int _edgeThreshold = 2;
 	private int _dilation = 2;
+	private int _distance = 100;
+	private int _maxAge = 5;
 	ArrayList<Point> _points;
+	ArrayList<Point> _previousPoints;
 	ArrayList<Line> _lines;
 
 	public MotionDetection(BasePApplet applet,
@@ -57,6 +62,10 @@ public class MotionDetection extends BaseAppletDrawer implements
 		_flob.setThresh(20).setSrcImage(0).setBlur(0).setOm(0).setFade(25)
 				.setMirror(true, false);
 		_flob.settrackedBlobLifeTime(600);
+
+		_points = new ArrayList<Point>();
+		_previousPoints = new ArrayList<Point>();
+		_lines = new ArrayList<Line>();
 	}
 
 	public ArrayList<Point> get_targets()
@@ -86,102 +95,100 @@ public class MotionDetection extends BaseAppletDrawer implements
 			_applet.image(_cur_image, 1, 1);
 			_applet.image(_diff_image, 1, _videoheight);
 			_applet.fill(0, 0, 255);
-			_applet.text(String.format("edge threshold = %d | dilation = %d",
-					_edgeThreshold, _dilation), 10, 10);
+			_applet
+					.text(
+							String
+									.format(
+											"edge threshold = %d | dilation = %d\ndistance = %d | maxage = %d",
+											_edgeThreshold, _dilation,
+											_distance, _maxAge), 10, 10);
 		}
 
-		fillTargets1();
+		extractBlobs();
 
-	}
-
-	private void fillTargets2()
-	{
-		_tBlobs = _flob.track(_diff_image);
-		int numblobs = _tBlobs.size();
-
-		_lines = new ArrayList<Line>(numblobs);
-		for (int i = 0; i < numblobs; i++)
+		deleteOldBlobs();
+		
+		_lines.clear();
+		Iterator<Point> i = _points.iterator();
+		while (i.hasNext())
 		{
-			trackedBlob ab = (trackedBlob) _flob.getTrackedBlob(i);
-			if (_flob.imageblobs.prevtrackedblobs.size() > 0)
+
+			Point p = i.next();
+			Iterator<Point> prevIt = _previousPoints.iterator();
+			double minDistance = -1;
+			Point found = new Point(0,0);
+			while (prevIt.hasNext())
 			{
-				trackedBlob pab = (trackedBlob) _flob.getPreviousTrackedBlob(i);
-
-				if (_contextProvider.get_context().debug)
+				Point prev = prevIt.next();
+				double currentDistance = prev.CalcDistance(p);
+				if (currentDistance < _distance && (minDistance == -1 || currentDistance < minDistance))
 				{
-					String txt = "id: " + ab.id;
-					_applet.strokeWeight(1);
-					_applet.stroke(0, 255, 0);
-					_applet.fill(220, 220, 255, 100);
-					_applet.rect(ab.cx, ab.cy, ab.dimx, ab.dimy);
-					_applet.fill(0, 255, 0, 200);
-					_applet.rect(ab.cx, ab.cy, 5, 5);
-					_applet.fill(0);
-					_applet.text(txt, ab.cx - ab.dimx * 0.10f, ab.cy + 5f);
+					minDistance = currentDistance;
+					found = prev;					
 				}
-
-				_lines.add(new Line(new Point(Math
-						.round((ab.boxcenterx * 1.0f / _videowidth)
-								* _screenwidth), Math
-						.round((ab.boxcentery * 1.0f / _videoheight)
-								* _screenheight)), new Point(Math
-						.round((pab.boxcenterx * 1.0f / _videowidth)
-								* _screenwidth), Math
-						.round((pab.boxcentery * 1.0f / _videoheight)
-								* _screenheight))));
 			}
+			
+			if (minDistance > 0) {
+				_previousPoints.remove(found);
+				_lines.add(new Line(p, found));
+			}
+
+		
 		}
+	}
+
+	private void deleteOldBlobs() {
+
+		ArrayList<Point> toDelete = new ArrayList<Point>();
+		Iterator<Point> prevIt = _previousPoints.iterator();
+		Point prev;
+		while (prevIt.hasNext())
+		{
+			prev = prevIt.next();
+			
+			if (prev.GetAge() > _maxAge) toDelete.add(prev);
+		}
+		
+
+		_previousPoints.removeAll(toDelete);
 
 	}
 
-	private void fillTargets1()
+	private void extractBlobs()
 	{
 		_blobs = _flob.calc(_diff_image);
 		int numblobs = _blobs.size();
-
+		_previousPoints.addAll(_points);
 		_points = new ArrayList<Point>(numblobs);
+
+		if (_contextProvider.get_context().debug)
+			BasePApplet
+					.println("*** BLOBS FOUND: ********************************");
 		for (int i = 0; i < numblobs; i++)
 		{
 			ABlob ab = (ABlob) _flob.getABlob(i);
-			
+
 			if (_contextProvider.get_context().debug)
 			{
 				String txt = "id: " + ab.id;
 				_applet.strokeWeight(1);
 				_applet.stroke(0, 255, 0);
+				_applet.rectMode(BasePApplet.CENTER);
 				_applet.fill(220, 220, 255, 100);
-				_applet.rect(ab.cx, ab.cy, ab.dimx, ab.dimy);
-				_applet.fill(0, 255, 0, 200);
-				_applet.rect(ab.cx, ab.cy, 5, 5);
+				_applet.rect(ab.boxcenterx, ab.boxcentery, ab.dimx, ab.dimy);
 				_applet.fill(0);
 				_applet.text(txt, ab.cx - ab.dimx * 0.10f, ab.cy + 5f);
+
+				BasePApplet.println("ID " + ab.id + " (" + ab.boxcenterx + ", "
+						+ ab.boxcentery + ")");
+
 			}
 
 			_points.add(new Point(
 					Math.round((ab.boxcenterx * 1.0f / _videowidth)
 							* _screenwidth), Math
 							.round((ab.boxcentery * 1.0f / _videoheight)
-									* _screenheight)));
-		}
-		
-		for (int i = 0; i < _flob.imageblobs.prevnumblobs; i++)
-		{
-			ABlob ab = (ABlob) _flob.getPreviousABlob(i);
-		
-			if (_contextProvider.get_context().debug)
-			{
-				String txt = "id: " + ab.id;
-				_applet.strokeWeight(1);
-				_applet.stroke(0, 255, 0);
-				_applet.fill(10, 10, 10, 100);
-				_applet.rect(ab.cx, ab.cy, ab.dimx, ab.dimy);
-				_applet.fill(0, 255, 0, 200);
-				_applet.rect(ab.cx, ab.cy, 5, 5);
-				_applet.fill(0);
-				_applet.text(txt, ab.cx - ab.dimx * 0.10f, ab.cy + 5f);
-			}
-
-			
+									* _screenheight)).set_id(ab.id));
 		}
 
 	}
@@ -206,6 +213,26 @@ public class MotionDetection extends BaseAppletDrawer implements
 				.get_char("d"))
 		{
 			_dilation = Math.min(100, _dilation + 1);
+		}
+		else if (_applet.key == ruben.common.keyboard.KeyConvertor
+				.get_char("w"))
+		{
+			_distance = Math.max(1, _distance - 1);
+		}
+		else if (_applet.key == ruben.common.keyboard.KeyConvertor
+				.get_char("c"))
+		{
+			_distance = Math.min(1000, _distance + 1);
+		}
+		else if (_applet.key == ruben.common.keyboard.KeyConvertor
+				.get_char("&"))
+		{
+			_maxAge = Math.max(1, _maxAge - 1);
+		}
+		else if (_applet.key == ruben.common.keyboard.KeyConvertor
+				.get_char("\""))
+		{
+			_maxAge = Math.min(1000, _maxAge + 1);
 		}
 
 	}

@@ -24,22 +24,22 @@ public class MultipleTargetsDrawingAppletDrawer extends BaseAppletDrawer
 
 	public void draw()
 	{
-		ArrayList<Point> targets = _targetsRepo.get_targets();
-		for (int i = 0; i < targets.size(); i++){
-			
-			Point p = targets.get(i);
-			p.SetColor(_config.get_foreground()).SetLineSize(_config.get_line_weight());
-			
-			_drawingSystem.AddLine(p);
-		}
-//		ArrayList<Line> targets = _targetsRepo.get_linetargets();
+//		ArrayList<Point> targets = _targetsRepo.get_targets();
 //		for (int i = 0; i < targets.size(); i++){
 //			
-//			Line p = targets.get(i);
+//			Point p = targets.get(i);
 //			p.SetColor(_config.get_foreground()).SetLineSize(_config.get_line_weight());
 //			
 //			_drawingSystem.AddLine(p);
 //		}
+		ArrayList<Line> targets = _targetsRepo.get_linetargets();
+		for (int i = 0; i < targets.size(); i++){
+			
+			Line p = targets.get(i);
+			p.SetColor(_config.get_foreground()).SetLineSize(_config.get_line_weight());
+			
+			_drawingSystem.AddLine(p);
+		}
 		
 	}
 

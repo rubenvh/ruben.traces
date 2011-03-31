@@ -18,14 +18,13 @@ import ruben.traces.context.TraceConfiguration;
 import ruben.traces.context.TraceContext;
 
 @SuppressWarnings("serial")
-public class Traces extends BasePApplet implements ITargetRepository, IImageSourceRepository, IConfigProvider, IContextProvider
+public class Traces extends BasePApplet implements ITargetRepository,
+		IImageSourceRepository, IConfigProvider, IContextProvider
 {
-	public static void main(String args[]) {
-		PApplet.main(new String[] {
-				"display=1",
-				"--bgcolor=#000000", "--present-stop-color=#000000",
-				"--exclusive",
-				"--present",
+	public static void main(String args[])
+	{
+		PApplet.main(new String[] { "display=1", "--bgcolor=#000000",
+				"--present-stop-color=#000000", "--exclusive", "--present",
 				"ruben.traces.engine.Traces" });
 	}
 
@@ -35,7 +34,7 @@ public class Traces extends BasePApplet implements ITargetRepository, IImageSour
 	ArrayList<IGraphicObjectVisitor> _visitors;
 	IWindowedImageSource _source;
 	ITraceConfiguration _config;
-	
+
 	public void setup()
 	{
 		_config = new TraceConfiguration(this, "app.config");
@@ -43,29 +42,38 @@ public class Traces extends BasePApplet implements ITargetRepository, IImageSour
 		_drawingSystem = new DrawingSystem(this);
 		_renderSystem = new RenderSystem(_drawingSystem, this);
 		_visitors = new ArrayList<IGraphicObjectVisitor>(1);
-		_visitors.add(new FaderVisitor(_config.get_fade_decay1(), _config.get_fade_decay2(), _config.get_fade_decay3(), _config.get_fade_to(), _config.get_fade_to2()));
-		
+		_visitors.add(new FaderVisitor(_config.get_fade_decay1(), _config
+				.get_fade_decay2(), _config.get_fade_decay3(), _config
+				.get_fade_to(), _config.get_fade_to2()));
+		_visitors.add(new DeletingVisitor());
+
 		if (_config.get_use_camera())
-			_source = OpenCVVideoSource.Create(this, 2, _config.get_video_width(), _config.get_video_height(), _config.get_camera_number(), new Parameter<Integer>(20));
+			_source = OpenCVVideoSource.Create(this, 2, _config
+					.get_video_width(), _config.get_video_height(), _config
+					.get_camera_number(), new Parameter<Integer>(20));
 		else
-			_source = OpenCVVideoSource.Create(this, 2, _config.get_video_width(), _config.get_video_height(), _config.get_movie_file(), new Parameter<Integer>(20));
-			
+			_source = OpenCVVideoSource.Create(this, 2, _config
+					.get_video_width(), _config.get_video_height(), _config
+					.get_movie_file(), new Parameter<Integer>(20));
+
 		super.setup();
-		
-		this.size(_config.get_screen_width(),_config.get_screen_height());
+
+		this.size(_config.get_screen_width(), _config.get_screen_height());
 	}
-	
+
 	public void draw()
 	{
-		_source.step();	
-		
+		_source.step();
+
 		background(_config.get_background());
-		
+
 		// border
 		noFill();
 		strokeWeight(1);
 		stroke(255);
-		rect(0, 0, _config.get_screen_width()-1, _config.get_screen_height()-1);
+		rectMode(NORMAL);
+		rect(0, 0, _config.get_screen_width() - 1,
+				_config.get_screen_height() - 1);
 
 		// redraw screen using renderSystem
 		_renderSystem.Render();
@@ -76,6 +84,13 @@ public class Traces extends BasePApplet implements ITargetRepository, IImageSour
 		for (int i = 0; i < _visitors.size(); i++)
 		{
 			_drawingSystem.GetGraphics().Accept(_visitors.get(i));
+		}
+
+		if (_context.debug)
+		{
+			this.fill(0, 255, 0);
+			this.text(String.format("number of graphics = %d", _drawingSystem
+					.GetGraphics().GetChildren().size()), 10, 40);
 		}
 	}
 
@@ -88,10 +103,11 @@ public class Traces extends BasePApplet implements ITargetRepository, IImageSour
 	public void keyPressed()
 	{
 		super.keyPressed();
-		
-		if (key == ruben.common.keyboard.KeyConvertor.get_char("=")) {
+
+		if (key == ruben.common.keyboard.KeyConvertor.get_char("="))
+		{
 			_context.debug = !_context.debug;
-		} 
+		}
 	}
 
 	public void keyReleased()
@@ -104,9 +120,8 @@ public class Traces extends BasePApplet implements ITargetRepository, IImageSour
 		_drawers = new Vector<IAppletDrawer>(2);
 		MotionDetection m = new MotionDetection(this, this, this, this);
 		_drawers.add(m);
-		_drawers.add(new MultipleTargetsDrawingAppletDrawer(_drawingSystem, m, this));
-		//_drawers.add(new MouseDrawingAppletDrawer(this, _drawingSystem, this));
-
+		_drawers.add(new MultipleTargetsDrawingAppletDrawer(_drawingSystem, m,
+				this));
 	}
 
 	public Point get_target()
