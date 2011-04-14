@@ -122,6 +122,7 @@ public class Traces extends BasePApplet implements ITargetRepository,
 		_drawers.add(m);
 		_drawers.add(new MultipleTargetsDrawingAppletDrawer(_drawingSystem, m,
 				this));
+		_drawers.add(new MaterializingAppletDrawer(this, this, _drawingSystem));
 	}
 
 	public Point get_target()

@@ -19,5 +19,6 @@ public interface ITraceConfiguration
 	int get_line_weight();
 	int get_motionfilter_edge_threshold();
 	int get_motionfilter_dilation();
+	String get_output_path();
 
 }

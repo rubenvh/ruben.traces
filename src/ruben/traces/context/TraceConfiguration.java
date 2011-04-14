@@ -99,4 +99,9 @@ public class TraceConfiguration implements ITraceConfiguration
 		return Integer.parseInt(_config.get("FADE.TO2"));
 	}
 
+	public String get_output_path()
+	{
+		return _config.get("OUTPUT.PATH");
+	}
+
 }
