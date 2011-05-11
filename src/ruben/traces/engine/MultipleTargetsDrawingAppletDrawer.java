@@ -67,4 +67,10 @@ public class MultipleTargetsDrawingAppletDrawer extends BaseAppletDrawer
 
 	}
 
+	public void cleanup()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
 }

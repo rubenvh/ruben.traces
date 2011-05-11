@@ -86,4 +86,10 @@ public class MaterializingAppletDrawer extends BaseAppletDrawer
 		return (new File(_directoryToWriteTo, get_current_date()+extension));
 	}
 
+	public void cleanup()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
 }

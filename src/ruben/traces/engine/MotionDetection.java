@@ -260,4 +260,10 @@ public class MotionDetection extends BaseAppletDrawer implements
 		return _lines;
 	}
 
+	public void cleanup()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
 }
